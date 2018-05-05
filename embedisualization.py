@@ -1,9 +1,11 @@
+from datetime import datetime
 from typing import List
 
 import matplotlib.pyplot as plt
 import mpld3
 import pandas as pd
 import spacy
+from more_itertools import flatten
 from scipy.cluster.hierarchy import ward, dendrogram
 from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -42,163 +44,131 @@ def tokenize_text(text):
     ]
 
 
-def embedisualisation(
-        texts: List[str],
-        text_labels: List[str] = None,
-        num_clusters: int = 6,
+class Embedisualisation:
 
-):
-    if text_labels is None:
-        text_labels = ['' for _ in texts]
+    def __init__(self, texts: List[str], text_labels: List[str] = None, num_clusters: int = 6):
+        self.texts = texts
+        self.text_labels = text_labels
+        self.num_clusters = num_clusters
 
-    # TODO add spacy tokenization
-    totalvocab_tokenized = []
+        self.dist = None
 
-    for text in texts:
-        allwords_tokenized = tokenize_text(text)
-        totalvocab_tokenized.extend(allwords_tokenized)
+        if text_labels is None:
+            self.text_labels = ['' for _ in self.texts]
 
-    vocab_frame = pd.DataFrame({'words': totalvocab_tokenized}, index=totalvocab_tokenized)
+    def create_d3_visualisation(self):
 
-    tfidf_vectorizer = TfidfVectorizer(
-        max_features=2000,
-        stop_words=None,
-        use_idf=True,
-        tokenizer=tokenize_text,
-        ngram_range=(1, 3))
+        tfidf_vectorizer = TfidfVectorizer(
+            max_features=2000,
+            stop_words=None,
+            use_idf=True,
+            tokenizer=tokenize_text,
+            ngram_range=(1, 3))
 
-    tfidf_matrix = tfidf_vectorizer.fit_transform(texts)
-    terms = tfidf_vectorizer.get_feature_names()
-    dist = 1 - cosine_similarity(tfidf_matrix)
+        tfidf_matrix = tfidf_vectorizer.fit_transform(self.texts)
+        # terms = tfidf_vectorizer.get_feature_names()
+        self.dist = 1 - cosine_similarity(tfidf_matrix)
 
-    km = KMeans(n_clusters=num_clusters)
-    km.fit(tfidf_matrix)
-    clusters = km.labels_.tolist()
+        km = KMeans(n_clusters=self.num_clusters)
+        km.fit(tfidf_matrix)
+        clusters = km.labels_.tolist()
 
-    texts_with_clusters = {'text': texts, 'text_label': text_labels, 'cluster': clusters}
-    frame = pd.DataFrame(texts_with_clusters, index=[clusters], columns=['text', 'cluster', 'text_label'])
+        mds = MDS(n_components=2, dissimilarity="precomputed", random_state=1)
+        pos = mds.fit_transform(self.dist)  # shape (n_components, n_samples)
 
-    # TODO consider removing or separate method
-    # print("Top terms per cluster:")
-    # order_centroids = km.cluster_centers_.argsort()[:, ::-1]
-    # for i in range(num_clusters):
-    #     print("Cluster %d words:" % i, end='')
-    #     for ind in order_centroids[i, :6]:
-    #         print(' %s' % vocab_frame.ix[terms[ind].split(' ')].values.tolist()[0][0].encode('utf-8', 'ignore'),
-    #               end=',')
-    #     print("Cluster %d texts:" % i, end='')
-    #     for text in frame.ix[i]['text'].values.tolist():
-    #         print(' %s\n' % text, end='')
+        xs, ys = pos[:, 0], pos[:, 1]
 
-    mds = MDS(n_components=2, dissimilarity="precomputed", random_state=1)
-    pos = mds.fit_transform(dist)  # shape (n_components, n_samples)
+        # set up cluster names using a dict
+        cluster_names = {i: f'Cluster {i}' for i in range(len(CLUSTER_COLORS))}
+        text_label_and_text = [': '.join(t) for t in list(zip(self.text_labels, self.texts))]
 
-    xs, ys = pos[:, 0], pos[:, 1]
+        # create data frame that has the result of the MDS plus the cluster numbers and titles
+        df = pd.DataFrame(dict(x=xs, y=ys, clusters=clusters, title=text_label_and_text))
 
-    # set up cluster names using a dict
-    cluster_names = {i: f'Cluster {i}' for i in range(len(CLUSTER_COLORS))}
-    text_label_and_text = [': '.join(t) for t in list(zip(text_labels, texts))]
+        # group by cluster
+        groups_clusters = df.groupby('clusters')
 
-    # create data frame that has the result of the MDS plus the cluster numbers and titles
-    df = pd.DataFrame(dict(x=xs, y=ys, label=clusters, title=text_label_and_text))
+        # set up plot
+        fig, ax = plt.subplots(figsize=(25, 15))  # set size
+        ax.margins(0.05)  # Optional, just adds 5% padding to the autoscaling
 
-    # group by cluster
-    groups = df.groupby('label')
+        # iterate through groups to layer the plot
+        # note that I use the cluster_name and cluster_color dicts with the 'name' lookup to return
+        # the appropriate color/label
+        for name, group in groups_clusters:
+            ax.plot(group.x, group.y, marker='o', linestyle='', ms=12, label=cluster_names[name],
+                    color=CLUSTER_COLORS[name],
+                    mec='none')
+            ax.set_aspect('auto')
+            ax.tick_params(axis='x',  # changes apply to the x-axis
+                           which='both',  # both major and minor ticks are affected
+                           bottom='off',  # ticks along the bottom edge are off
+                           top='off',  # ticks along the top edge are off
+                           labelbottom='off')
+            ax.tick_params(axis='y',  # changes apply to the y-axis
+                           which='both',  # both major and minor ticks are affected
+                           left='off',  # ticks along the bottom edge are off
+                           top='off',  # ticks along the top edge are off
+                           labelleft='off')
 
-    # set up plot
-    fig, ax = plt.subplots(figsize=(25, 15))  # set size
-    ax.margins(0.05)  # Optional, just adds 5% padding to the autoscaling
+        ax.legend(numpoints=1)  # show legend with only 1 point
 
-    # iterate through groups to layer the plot
-    # note that I use the cluster_name and cluster_color dicts with the 'name' lookup to return
-    # the appropriate color/label
-    for name, group in groups:
-        ax.plot(group.x, group.y, marker='o', linestyle='', ms=12, label=cluster_names[name],
-                color=CLUSTER_COLORS[name],
-                mec='none')
-        ax.set_aspect('auto')
-        ax.tick_params(axis='x',  # changes apply to the x-axis
-                       which='both',  # both major and minor ticks are affected
-                       bottom='off',  # ticks along the bottom edge are off
-                       top='off',  # ticks along the top edge are off
-                       labelbottom='off')
-        ax.tick_params(axis='y',  # changes apply to the y-axis
-                       which='both',  # both major and minor ticks are affected
-                       left='off',  # ticks along the bottom edge are off
-                       top='off',  # ticks along the top edge are off
-                       labelleft='off')
+        # add label in x,y position with the label as the
+        for i in range(len(df)):
+            ax.text(df.ix[i]['x'], df.ix[i]['y'], df.ix[i]['title'], size=8)
 
-    ax.legend(numpoints=1)  # show legend with only 1 point
+        # uncomment the below to save the plot if need be
+        plt.savefig(f'clusters_static-{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}.png', dpi=200)
 
-    # add label in x,y position with the label as the
-    for i in range(len(df)):
-        ax.text(df.ix[i]['x'], df.ix[i]['y'], df.ix[i]['title'], size=8)
+        # Plot
+        fig, ax = plt.subplots(figsize=(28, 20))  # set plot size
+        ax.margins(0.03)  # Optional, just adds 5% padding to the autoscaling
 
-    plt.show()  # show the plot
+        # iterate through groups to layer the plot
+        for name, group in groups_clusters:
+            points = ax.plot(group.x, group.y, marker='o', linestyle='', ms=18, label=cluster_names[name], mec='none',
+                             color=CLUSTER_COLORS[name])
+            ax.set_aspect('auto')
+            labels = [i for i in group.title]
 
-    # uncomment the below to save the plot if need be
-    plt.savefig('clusters_small_noaxes.png', dpi=200)
+            # set tooltip using points, labels and the already defined 'css'
+            tooltip = mpld3.plugins.PointHTMLTooltip(points[0], labels, voffset=10, hoffset=10, css=CSS)
+            # connect tooltip to fig
+            mpld3.plugins.connect(fig, tooltip, TopToolbar())
 
-    plt.close()
+            # set tick marks as blank
+            ax.axes.get_xaxis().set_ticks([])
+            ax.axes.get_yaxis().set_ticks([])
 
-    # create data frame that has the result of the MDS plus the cluster numbers and titles
-    df = pd.DataFrame(dict(x=xs, y=ys, label=clusters, title=text_label_and_text))
+            # set axis as blank
+            ax.axes.get_xaxis().set_visible(False)
+            ax.axes.get_yaxis().set_visible(False)
 
-    # group by cluster
-    groups = df.groupby('label')
+        ax.legend(numpoints=1)  # show legend with only one dot
+        mpld3.show()  # show the plot
 
-    # define custom css to format the font and to remove the axis labeling
+        html = mpld3.fig_to_html(fig)
 
-    # Plot
-    fig, ax = plt.subplots(figsize=(28, 20))  # set plot size
-    ax.margins(0.03)  # Optional, just adds 5% padding to the autoscaling
+    def draw_dendogram(self):
+        linkage_matrix = ward(self.dist)  # define the linkage_matrix using ward clustering pre-computed distances
+        fig, ax = plt.subplots(figsize=(15, 20))  # set size
+        ax = dendrogram(linkage_matrix, orientation="right", labels=self.text_labels)
 
-    # iterate through groups to layer the plot
-    for name, group in groups:
-        points = ax.plot(group.x, group.y, marker='o', linestyle='', ms=18, label=cluster_names[name], mec='none',
-                         color=CLUSTER_COLORS[name])
-        ax.set_aspect('auto')
-        labels = [i for i in group.title]
+        plt.tick_params(axis='x',  # changes apply to the x-axis
+                        which='both',  # both major and minor ticks are affected
+                        bottom='off',  # ticks along the bottom edge are off
+                        top='off',  # ticks along the top edge are off
+                        labelbottom='off')
+        plt.tight_layout()  # show plot with tight layout
 
-        # set tooltip using points, labels and the already defined 'css'
-        tooltip = mpld3.plugins.PointHTMLTooltip(points[0], labels,
-                                                 voffset=10, hoffset=10, css=CSS)
-        # connect tooltip to fig
-        mpld3.plugins.connect(fig, tooltip, TopToolbar())
-
-        # set tick marks as blank
-        ax.axes.get_xaxis().set_ticks([])
-        ax.axes.get_yaxis().set_ticks([])
-
-        # set axis as blank
-        ax.axes.get_xaxis().set_visible(False)
-        ax.axes.get_yaxis().set_visible(False)
-
-    ax.legend(numpoints=1)  # show legend with only one dot
-    mpld3.enable_notebook()
-    mpld3.show()  # show the plot
-
-    html = mpld3.fig_to_html(fig)
-
-    linkage_matrix = ward(dist)  # define the linkage_matrix using ward clustering pre-computed distances
-
-    fig, ax = plt.subplots(figsize=(15, 20))  # set size
-    ax = dendrogram(linkage_matrix, orientation="right", labels=text_labels)
-
-    plt.tick_params(axis='x',  # changes apply to the x-axis
-                    which='both',  # both major and minor ticks are affected
-                    bottom='off',  # ticks along the bottom edge are off
-                    top='off',  # ticks along the top edge are off
-                    labelbottom='off')
-    plt.tight_layout()  # show plot with tight layout
-
-    # uncomment below to save figure
-    plt.savefig('ward_clusters.png', dpi=200)  # save figure as ward_clusters
-    plt.close()
+        # uncomment below to save figure
+        plt.savefig('dendogram_clusters.png', dpi=200)  # save figure as ward_clusters
+        plt.close()
 
 
 if __name__ == '__main__':
-    embedisualisation([
+    emb = Embedisualisation([
         'This is example. This is subfirst.', 'this is next example', 'this is third example',
         'This is task. This is subfirst.', 'this is next tesk', 'this is third tesk',
     ])
+    emb.create_d3_visualisation()
