@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import mpld3
 import pandas as pd
 import spacy
-from more_itertools import flatten
 from scipy.cluster.hierarchy import ward, dendrogram
 from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -66,7 +65,6 @@ class Embedisualisation:
             ngram_range=(1, 3))
 
         tfidf_matrix = tfidf_vectorizer.fit_transform(self.texts)
-        # terms = tfidf_vectorizer.get_feature_names()
         self.dist = 1 - cosine_similarity(tfidf_matrix)
 
         km = KMeans(n_clusters=self.num_clusters)
@@ -78,7 +76,6 @@ class Embedisualisation:
 
         xs, ys = pos[:, 0], pos[:, 1]
 
-        # set up cluster names using a dict
         cluster_names = {i: f'Cluster {i}' for i in range(len(CLUSTER_COLORS))}
         text_label_and_text = [': '.join(t) for t in list(zip(self.text_labels, self.texts))]
 
@@ -147,23 +144,13 @@ class Embedisualisation:
         ax.legend(numpoints=1)  # show legend with only one dot
         mpld3.show()  # show the plot
 
-        html = mpld3.fig_to_html(fig)
-
     def draw_dendogram(self):
         linkage_matrix = ward(self.dist)  # define the linkage_matrix using ward clustering pre-computed distances
         fig, ax = plt.subplots(figsize=(15, 20))  # set size
         ax = dendrogram(linkage_matrix, orientation="right", labels=self.text_labels)
-
-        plt.tick_params(axis='x',  # changes apply to the x-axis
-                        which='both',  # both major and minor ticks are affected
-                        bottom='off',  # ticks along the bottom edge are off
-                        top='off',  # ticks along the top edge are off
-                        labelbottom='off')
-        plt.tight_layout()  # show plot with tight layout
-
-        # uncomment below to save figure
-        plt.savefig('dendogram_clusters.png', dpi=200)  # save figure as ward_clusters
-        plt.close()
+        plt.tick_params(axis='x', which='both',  bottom='off',  top='off',  labelbottom='off')
+        plt.tight_layout()
+        plt.savefig('dendogram_clusters.png', dpi=200)
 
 
 if __name__ == '__main__':
