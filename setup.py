@@ -13,7 +13,7 @@ setup(
     description='Visualization of text embeddings/vectorization with clustering',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/pypa/embedisualization',
+    url='https://github.com/laugustyniak/embedisualization',
     author='Łukasz Augustyniak',
     author_email='luk.augustyniak@gmail.com',
     classifiers=[  # Optional
@@ -70,8 +70,8 @@ setup(
     },
 
     project_urls={
-        'Bug Reports': 'https://github.com/pypa/embedisualization/issues',
-        'Source': 'https://github.com/pypa/embedisualization/',
+        'Bug Reports': 'https://github.com/laugustyniak/embedisualization/issues',
+        'Source': 'https://github.com/laugustyniak/embedisualization/',
     },
 )
 
