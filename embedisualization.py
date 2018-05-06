@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List
+import random
 
 import matplotlib.pyplot as plt
 import mpld3
@@ -12,12 +13,6 @@ from sklearn.manifold import MDS
 from sklearn.metrics.pairwise import cosine_similarity
 
 from top_toolbar import TopToolbar
-
-CLUSTER_COLORS = {
-    0: '#1b9e77', 1: '#d95f02', 2: '#7570b3', 3: '#e7298a',
-    4: '#66a61e', 5: '#960000', 6: '#96fffa',
-    # 7: '#190000', 8: '#9632fa', 9: '#963214'
-}
 
 CSS = """
     text.mpld3-text, div.mpld3-tooltip {
@@ -55,6 +50,8 @@ class Embedisualisation:
         if text_labels is None:
             self.text_labels = ['' for _ in self.texts]
 
+        self.cluster_color = [f'#{random.randint(0, 0xFFFFFF):06x}' for _ in range(self.num_clusters)]
+
     def create_d3_visualisation(self):
 
         tfidf_vectorizer = TfidfVectorizer(
@@ -76,7 +73,7 @@ class Embedisualisation:
 
         xs, ys = pos[:, 0], pos[:, 1]
 
-        cluster_names = {i: f'Cluster {i}' for i in range(len(CLUSTER_COLORS))}
+        cluster_names = {i: f'Cluster {i}' for i in range(self.num_clusters)}
         text_label_and_text = [': '.join(t) for t in list(zip(self.text_labels, self.texts))]
 
         # create data frame that has the result of the MDS plus the cluster numbers and titles
@@ -94,7 +91,7 @@ class Embedisualisation:
         # the appropriate color/label
         for name, group in groups_clusters:
             ax.plot(group.x, group.y, marker='o', linestyle='', ms=12, label=cluster_names[name],
-                    color=CLUSTER_COLORS[name],
+                    color=self.cluster_color[name],
                     mec='none')
             ax.set_aspect('auto')
             ax.tick_params(axis='x',  # changes apply to the x-axis
@@ -124,7 +121,7 @@ class Embedisualisation:
         # iterate through groups to layer the plot
         for name, group in groups_clusters:
             points = ax.plot(group.x, group.y, marker='o', linestyle='', ms=18, label=cluster_names[name], mec='none',
-                             color=CLUSTER_COLORS[name])
+                             color=self.cluster_color[name])
             ax.set_aspect('auto')
             labels = [i for i in group.title]
 
