@@ -12,7 +12,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.manifold import MDS
 from sklearn.metrics.pairwise import cosine_similarity
 
-from top_toolbar import TopToolbar
+from embedisualization.top_toolbar import TopToolbar
 
 CSS = """
     text.mpld3-text, div.mpld3-tooltip {
