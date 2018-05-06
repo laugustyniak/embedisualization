@@ -148,11 +148,3 @@ class Embedisualisation:
         plt.tick_params(axis='x', which='both',  bottom='off',  top='off',  labelbottom='off')
         plt.tight_layout()
         plt.savefig('dendogram_clusters.png', dpi=200)
-
-
-if __name__ == '__main__':
-    emb = Embedisualisation([
-        'This is example. This is subfirst.', 'this is next example', 'this is third example',
-        'This is task. This is subfirst.', 'this is next tesk', 'this is third tesk',
-    ])
-    emb.create_d3_visualisation()
