@@ -44,34 +44,23 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ],
-
     keywords='word_embeddings clustering word_vectorization visualisation',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),  # Required
-
-    # This field lists other packages that your project depends on to run.
-    # Any package you put here will be installed by pip when your project is
-    # installed, so they must be valid existing projects.
-    #
-    # For an analysis of "install_requires" vs pip's requirements files see:
-    # https://packaging.python.org/en/latest/requirements.html
-    # install_requires=[''],  # Optional
-
-    # List additional groups of dependencies here (e.g. development
-    # dependencies). Users will be able to install these using the "extras"
-    # syntax, for example:
-    #
-    #   $ pip install sampleproject[dev]
-    #
-    # Similar to `install_requires` above, these must be valid existing
-    # projects.
+    install_requires=[
+        'matplotlib==2.1.0',
+        'more-itertools==4.1.0',
+        'mpld3==0.3',
+        'pandas==0.20.3',
+        'scikit-learn==0.19.1',
+        'scipy==1.0.1',
+        'spacy==2.0.10'
+    ],
     extras_require={
         'dev': ['check-manifest'],
         'test': ['coverage'],
     },
-
     project_urls={
         'Bug Reports': 'https://github.com/laugustyniak/embedisualization/issues',
         'Source': 'https://github.com/laugustyniak/embedisualization/',
     },
 )
-
