@@ -1,6 +1,6 @@
 # Visualize embed of documents
 
-## Install requirements and spacy model - run
+## Install requirements and spacy model
 
 You could use `conda`
 
