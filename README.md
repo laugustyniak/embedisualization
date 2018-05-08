@@ -18,6 +18,9 @@ To run exemplary visualisation go to `examples` directory and run
 
 `python sample_text_vis.py`
 
-It will take minute or two to generate embeddings and create 2D vis. The new webapge with D3 visualisation will be presented.
+It will take minute or two to generate embeddings and create 2D vis. The new webpage with D3 visualisation will be presented.
+
+![Sample of Trump's Tweets Embedisialized](https://raw.githubusercontent.com/laugustyniak/embedisualization/master/examples/trump.gif)
 
 ![Sample of Trump's Tweets Embedisialized](https://raw.githubusercontent.com/laugustyniak/embedisualization/master/examples/trump-tweets-vis.png)
+
