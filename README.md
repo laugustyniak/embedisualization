@@ -20,3 +20,4 @@ To run exemplary visualisation go to `examples` directory and run
 
 It will take minute or two to generate embeddings and create 2D vis. The new webapge with D3 visualisation will be presented.
 
+[https://raw.githubusercontent.com/laugustyniak/embedisualization/master/examples/trump-tweets-vis.png|alt=trump]
