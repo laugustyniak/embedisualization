@@ -12,6 +12,10 @@ You could use `conda`
 
 `python -m spacy download en_core_web_sm`
 
+## Install embedisualization lib
+
+`pip install embedisualization`
+
 ## Example
 
 To run exemplary visualisation go to `examples` directory and run
