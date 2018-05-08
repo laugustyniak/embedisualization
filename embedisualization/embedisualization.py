@@ -1,16 +1,17 @@
+import random
 from datetime import datetime
 from typing import List
-import random
 
 import matplotlib.pyplot as plt
 import mpld3
+import numpy as np
 import pandas as pd
 import spacy
 from scipy.cluster.hierarchy import ward, dendrogram
 from sklearn.cluster import KMeans
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.manifold import MDS
 from sklearn.metrics.pairwise import cosine_similarity
+from tqdm import tqdm
 
 from embedisualization.top_toolbar import TopToolbar
 
@@ -54,18 +55,11 @@ class Embedisualisation:
 
     def create_d3_visualisation(self):
 
-        tfidf_vectorizer = TfidfVectorizer(
-            max_features=2000,
-            stop_words=None,
-            use_idf=True,
-            tokenizer=tokenize_text,
-            ngram_range=(1, 3))
-
-        tfidf_matrix = tfidf_vectorizer.fit_transform(self.texts)
-        self.dist = 1 - cosine_similarity(tfidf_matrix)
+        vectors_matrix = np.vstack([nlp(text).vector for text in tqdm(self.texts)])
+        self.dist = 1 - cosine_similarity(vectors_matrix)
 
         km = KMeans(n_clusters=self.num_clusters)
-        km.fit(tfidf_matrix)
+        km.fit(vectors_matrix)
         clusters = km.labels_.tolist()
 
         mds = MDS(n_components=2, dissimilarity="precomputed", random_state=1)
@@ -115,7 +109,7 @@ class Embedisualisation:
         plt.savefig(f'clusters_static-{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}.png', dpi=200)
 
         # Plot
-        fig, ax = plt.subplots(figsize=(28, 20))  # set plot size
+        fig, ax = plt.subplots(figsize=(20, 15))  # set plot size
         ax.margins(0.03)  # Optional, just adds 5% padding to the autoscaling
 
         # iterate through groups to layer the plot
@@ -145,6 +139,6 @@ class Embedisualisation:
         linkage_matrix = ward(self.dist)  # define the linkage_matrix using ward clustering pre-computed distances
         fig, ax = plt.subplots(figsize=(15, 20))  # set size
         ax = dendrogram(linkage_matrix, orientation="right", labels=self.text_labels)
-        plt.tick_params(axis='x', which='both',  bottom='off',  top='off',  labelbottom='off')
+        plt.tick_params(axis='x', which='both', bottom='off', top='off', labelbottom='off')
         plt.tight_layout()
         plt.savefig('dendogram_clusters.png', dpi=200)
