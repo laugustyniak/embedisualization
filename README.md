@@ -12,7 +12,7 @@ You could use `conda`
 
 `python -m spacy download en_vectors_web_lg`
 
-This spacy model [en_vectors_web_lg](https://spacy.io/models/en#en_vectors_web_lg) is quite heavy (631MB)
+This spacy model [en_vectors_web_lg](https://spacy.io/models/en#en_vectors_web_lg) is quite heavy (631MB). The vocabulary consist of 1.1m keys, 1.1m unique vectors (300 dimensions).
 
 ## Install embedisualization lib
 
