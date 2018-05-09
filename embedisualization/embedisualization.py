@@ -24,7 +24,7 @@ CSS = """
     display: none; }
     """
 
-nlp = spacy.load('en_core_web_sm')
+nlp = spacy.load('en_vectors_web_lg')
 
 
 def tokenize_text(text):
