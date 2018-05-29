@@ -27,3 +27,8 @@ To run exemplary visualisation go to `examples` directory and run
 It will take minute or two to generate embeddings and create 2D vis. The new webpage with D3 visualisation will be presented.
 
 ![Sample of Trump's Tweets Embedisualized](https://raw.githubusercontent.com/laugustyniak/embedisualization/master/examples/trump.gif)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Flaugustyniak%2Fembedisualization.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Flaugustyniak%2Fembedisualization?ref=badge_shield)
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Flaugustyniak%2Fembedisualization.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Flaugustyniak%2Fembedisualization?ref=badge_large)
