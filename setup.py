@@ -45,7 +45,7 @@ setup(
         'mpld3==0.3',
         'pandas==0.20.3',
         'scikit-learn==0.19.1',
-        'scipy==1.0.1',
+        'scipy==1.10.0',
         'spacy==2.0.10'
     ],
     extras_require={
